@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html lang="en" ng-app="myApp" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html lang="en" ng-app="myApp" class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html lang="en" ng-app="myApp" class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en" ng-app="myApp" class="no-js"> <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>AngularJS Flickr Gallery</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="images/favicon.jpg">
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="components/angular-bootstrap-lightbox.css">
+  <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+  <link href="https://fonts.googleapis.com/css?family=Lato:400,700" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+  
+  <!-- Include Required Prerequisites for date range -->
+<script type="text/javascript" src="//cdn.jsdelivr.net/jquery/1/jquery.min.js"></script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+ 
+<!-- Include Date Range Picker -->
+<script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
+
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script>
+  
+<script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/1.2.5/ui-bootstrap-tpls.min.js"></script>
+<script src="components/angular-bootstrap-lightbox.min.js"></script>
+<script src="components/FileSaver.min.js"></script>
+
+<script src="app.js"></script>
+<script src="gallery/gallery.js"></script>
+
+</head>
+<body ng-app="myApp">
+
+  <div ng-controller="GalleryCtrl">
+    <div class="container-fluid">
+      <header class="clearfix">
+          <div class="title text-center">
+              <h1>AngularJS Flickr Gallery</h1>
+          </div>
+          
+      </header>
+      <div class="filters clearfix">
+          <form>
+              <div class="form-group">
+                <input type="search" class="form-control" id="search" ng-model="filter.query" placeholder="Search for anything">
+                <img src="images/Enter-Key.svg" class="enter-key" alt="Search for anything" />
+              </div>
+          </form>
+          <div class="row">
+              <div class="col-sm-12">
+                  <button ng-click="filterClear()" type="button" class="btn btn-grey btn-lg btn-block" ng-class="{active: filters.tag==''}">All Artwork</button>
+              </div>
+          </div>
+          <div class="row">
+              <div class="col-xs-6 col-tight">
+                  <button ng-click="filterSet('M')" type="button" class="btn btn-black btn-lg btn-block" ng-class="{active: filters.tag.indexOf('M')!=-1}">Filter 1</button>
+              </div>
+              <div class="col-xs-6 col-tight">
+                  <button ng-click="filterSet('S')" type="button" class="btn btn-yellow btn-lg btn-block" ng-class="{active: filters.tag.indexOf('S')!=-1}">Filter 2</button>
+              </div>
+          </div>
+      
+      </div>
+      
+      <hr class="top-hr">
+      
+      <div class="sort clearfix">
+          <div class="icon-section">
+              <div class="icon-col">
+                  <button ng-click="viewSet('grid')" type="button" title="Grid view" class="btn btn-icon" ng-class="{active: sort.view=='grid'}">
+                      <img src="images/Gallery.svg" alt="View gallery as a grid" />
+                  </button>
+              </div>
+              <div class="icon-col">
+                  <button ng-click="viewSet('list')" type="button"  title="List view"  class="btn btn-icon" ng-class="{active: sort.view=='list'}">
+                      <img src="images/List.svg" alt="View gallery as a list" />
+                  </button>
+              </div>
+          </div>
+          <div class="icon-section">
+              <div class="icon-col">
+                  <button ng-click="sortSet('dateupload')" type="button" title="Sort by date" class="btn btn-icon btn-sort" ng-class="{active: sort.by=='dateupload', flipped: sort.dir}">
+                      <img src="images/Calendar.svg" alt="Set a date range to filter the images" />
+                  </button>
+              </div>
+              <div class="icon-col">
+                  <button ng-click="sortSet('title')" type="button" title="Sort by name" class="btn btn-icon btn-sort" ng-class="{active: sort.by=='title', flipped: !sort.dir}">
+                      <img src="images/Filename.svg" alt="Sort by name" />
+                  </button>
+              </div>
+          </div>
+          <div class="icon-section">
+              <div class="icon-col">
+                  <button type="button" title="Sort ascending/descending" class="btn btn-icon btn-dr" ng-class="{active: filters.date.start!=10000}">
+                      <img src="images/Date-Range.svg" alt="Sort by date" />
+                  </button>
+              </div>
+          </div>
+      </div>
+      
+      <hr class="top-hr">
+      
+      
+      <div when-scrolled="increaseLimit()" class="gallery-images" id="gallery" ng-hide="firstLoad">
+        <p ng-show="filter.query.length>0">Showing {{filtered.length}} of {{ (pics | startsWithLetter:filters.tag | multiWordFilter:filter.query).length }} Images</p>
+          <ul ng-show="sort.view=='grid'" class="image-grid list-unstyled">
+              <li ng-repeat="pic in pics | orderBy : sort.by : sort.dir | startsWithLetter:filters.tag | multiWordFilter:filter.query | limitTo:numLimit as filtered track by $index " class="grid-item centre-cropped"
+                  ng-class="{'portrait': pic.height_m>=pic.width_m, 'super-landscape':pic.width_m/pic.height_m>=10, 'landscape': pic.height_m<=pic.width_m}" ng-click="openLightboxModal($index)"
+                  ng-style="{ 'background-image': 'url(https://farm'+pic.farm+'.staticflickr.com/'+pic.server+'/'+pic.id+'_'+pic.secret+'_m.jpg)' }" >
+                  <img ng-src="https://farm{{pic.farm}}.staticflickr.com/{{pic.server}}/{{pic.id}}_{{pic.secret}}_m.jpg" class="img-hidden"  />
+                  <p class="img-text">
+                     {{pic.title}}
+                  </p>
+              </li>
+          </ul>
+          <ul ng-show="sort.view=='list'" class="image-list list-unstyled">
+              <li ng-repeat="pic in pics | orderBy : sort.by : sort.dir | startsWithLetter:filters.tag | multiWordFilter:filter.query | limitTo:numLimit as filtered track by $index" class="list-item" ng-click="openLightboxModal($index)">
+                   <img ng-src="https://farm{{pic.farm}}.staticflickr.com/{{pic.server}}/{{pic.id}}_{{pic.secret}}_s.jpg" class="list-img"  />
+                   <p class="list-text">
+                      {{pic.title}}
+                   </p>
+              </li>
+          </ul>
+      </div>
+      
+      <div id="bottom-waypoint" >
+          <div class="loading" ng-show="pics < 1 && inProgress || firstLoad">
+              <p class="text-center">
+                  <i class="fa fa-refresh fa-spin"></i><br>
+                  Getting images
+              </p>
+              
+          </div>
+      </div>
+      
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,39 @@
+<div ng-controller="ModalCtrl" class="modal-body" ng-swipe-left="Lightbox.nextImage()" ng-swipe-right="Lightbox.prevImage()">
+  <!-- navigation -->
+  <div class="lightbox-nav">
+    <!-- close button 
+    <button class="close" aria-hidden="true" ng-click="$dismiss()">×</button>
+-->
+    <div class="lightbox-arrows" ng-if="Lightbox.images.length >= 1">
+      <a class="" ng-click="Lightbox.prevImage()" ng-if="Lightbox.images.length > 1">
+        <img src="images/Left.svg" title="View Previous Image" alt="Left arrow" class="nav-arrow left"  />
+      </a>
+      
+      <a class="" ng-click="Lightbox.nextImage()" ng-if="Lightbox.images.length > 1">
+        <img src="images/Right.svg" title="View Next Image" alt="Right arrow" class="nav-arrow right" />
+      </a>
+    </div>
+  </div>
+
+  <div class="lightbox-image-container">
+    <!-- caption -->
+    <div class="lightbox-image-caption">
+      <span>{{Lightbox.imageCaption}}</span>
+    </div>
+
+    <!-- image -->
+    <img ng-if="!Lightbox.isVideo(Lightbox.image)" lightbox-src="{{Lightbox.imageUrl}}" >
+    
+  </div>
+  
+  <div class="bottom-nav" height="40px">
+    <a ng-hide="downloading" class="" title="Download image" ng-click="downloadImage(Lightbox.imageUrl, Lightbox.imageCaption)" >
+        <img src="images/Download.svg" title="Download Image" alt="Download icon" class="lightbox-download" />
+    </a>
+    <div ng-show="downloading" class="spinner">
+      <div class="double-bounce1"></div>
+      <div class="double-bounce2"></div>
+    </div>
+  </div>
+  
+</div>
